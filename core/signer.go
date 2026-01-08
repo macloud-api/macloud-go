@@ -165,7 +165,7 @@ func AuthHeaderValue(signatureStr, accessKeyStr string) string {
 	return fmt.Sprintf("Bearer %s", signatureStr)
 }
 
-// Signer access key from edgenext console
+// Signer access key from macloud console
 type Signer struct {
 	AppId     string
 	AppSecret string

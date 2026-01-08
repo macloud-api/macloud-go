@@ -1,8 +1,8 @@
-# edgenext.com api sdk for go
+# macloud.pro api sdk for go
 
 ### 说明
 
-* edgenext scdn产品，官网地址：https://www.edgenext.com/
+* macloud scdn产品，官网地址：https://homeconsole.macloud.pro
 * 接口遵循RESTful，默认请求体json，接口默认返回json
 
 ### 签名算法
@@ -28,7 +28,7 @@
 ## 安装
 
 ```
-go get github.com/edgenextapisdk/edgenext-go
+go get github.com/macloud-api/macloud-go
 ```
 
 ### 使用
@@ -39,7 +39,7 @@ package main
 
 import (
         "os"
-        sdk "github.com/edgenextapisdk/edgenext-go"
+        sdk "github.com/macloud-api/macloud-go"
         "fmt"
 )
 
