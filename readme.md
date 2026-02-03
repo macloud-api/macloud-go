@@ -1,237 +1,211 @@
-# macloud.pro api sdk for go
+# Macloud Go SDK
 
-### 说明
+Official Go SDK for Macloud SCDN API.
 
-* macloud scdn产品，官网地址：https://homeconsole.macloud.pro
-* 接口遵循RESTful，默认请求体json，接口默认返回json
+**Website:** https://homeconsole.macloud.pro
 
-### 签名算法
+## Features
 
-* 每次请求都签名，保证传输过程数据不被篡改
-* 客户端：sha256签名算法，将参数base64编码+app_secret用sha256签名，每次请求带上签名
-* 服务端：拿到参数用相同的算法签名，对比签名是否正确
+- RESTful API support
+- JSON request/response format
+- SHA256 signature algorithm for secure requests
+- Support for GET, POST, PUT, PATCH, DELETE methods
+- Automatic request signing and authentication
 
-### sdk 使用说明
+## Signature Algorithm
 
-* 环境：go >=1.14
-* 支持get/post/patch/put/delete方法
-* 参数说明
-    * AppId 分配的app_id
-    * appSecert 分配的appSecert, 用于签名数据
-    * apiUrlPre api地址前缀, 请具体咨询运营人员
-    * userId 当前使用者的用户ID
-* 每次调用会返回JSONObject, 如果执行过程中有异常，会直接抛出异常；
-* 如果需要调试，可以调用debug方法
-* 注意事项
-    针对所有请求，uri与get参数是分离的，如 https://apiv4.local.com/V4/version?v=1, 调用时v=1参数，须通过ReqParams.Query传递
+Each request is signed to ensure data integrity during transmission:
 
-## 安装
+- **Client**: Uses SHA256 signature algorithm. Parameters are base64 encoded and signed with `app_secret` using SHA256. The signature is included in each request.
+- **Server**: Validates the signature using the same algorithm to verify request authenticity.
 
-```
+## Requirements
+
+- Go >= 1.18
+
+## Installation
+
+```bash
 go get github.com/macloud-api/macloud-go
 ```
 
-### 使用
+## Configuration
 
-#### 示例类
-```
+The SDK requires the following parameters:
+
+- **AppId**: Your assigned application ID
+- **AppSecret**: Your assigned application secret, used for signing data
+- **ApiPre**: API endpoint prefix (contact support for details)
+
+## Usage
+
+### Initialize SDK
+
+```go
 package main
 
 import (
-        "os"
-        sdk "github.com/macloud-api/macloud-go"
-        "fmt"
+	"os"
+	sdk "github.com/macloud-api/macloud-go"
 )
 
 func main() {
-	app_id := os.Getenv("SDK_APP_ID")                     //这里是用的环境变量，业务中使用时，请替换成具体的参数
-	app_secret := os.Getenv("SDK_APP_SECERT")             //这里是用的环境变量，业务中使用时，请替换成具体的参数
-	api_pre := os.Getenv("SDK_API_PRE")                   //这里是用的环境变量，业务中使用时，请替换成具体的参数
+	app_id := os.Getenv("SDK_APP_ID")
+	app_secret := os.Getenv("SDK_APP_SECERT")
+	api_pre := os.Getenv("SDK_API_PRE")
 
-        sdkObj := sdk.Sdk{
-                AppId: app_id,
-                AppSecret: app_secret,
-                ApiPre: api_pre,
-                Timeout: 30,
-        }
-        var api string
-        var err error
-        //ReqParams 有三个属性，如果用不到，不设置即可：
-        //ReqParams.Query 对应的是GET请求的参数，map[string]interface{}
-        //ReqParams.Data  对应的是非GET请求的参数，map[string]interface{}
-        //ReqParams.Header  对应的是发起请求的header头，map[string]string
-        var reqParams sdk.ReqParams
-
-        // Response包括响应的全部信息，其中：
-        // Response.HttpCode Http请求响应状态码，成功是200
-        // Response.RespBody 请求返回的body字符串
-        // Response.BizCode 是业务的状态码，1代码请求成功，非1代码请求失败
-        // Response.BizMsg  是业务的状态码对应的信息
-        // Response.BizData  返回的业务数据，只有BizCode为1时，才会有数据
-        var resp *sdk.Response
-
-        api = "test.sdk.get"
-        reqParams = sdk.ReqParams{
-                Query: map[string]interface{}{
-                        "page": 1,
-                        "pagesize": 10,
-                        "data": map[string]interface{}{
-                                "name": "name名称",
-                                "domain": "baidu.com",
-                        },
-                },
-        }
-        resp, err = sdkObj.Get(api, reqParams)
-        if err == nil {
-                if resp.BizCode == 1 {
-                        fmt.Println(api, " 业务处理成功")
-                } else {
-                        fmt.Println(api, " 业务处理错误: ")
-                }
-                fmt.Println(api, " http_code: ", resp.HttpCode)
-                fmt.Println(api, " body: ", resp.RespBody)
-                fmt.Println(api, " biz_code: ", resp.BizCode)
-                fmt.Println(api, " biz_msg: ", resp.BizMsg)
-                fmt.Println(api, " biz_data: ", resp.BizData)
-                fmt.Println(api, " err: ", err)
-        } else {
-                fmt.Println(api, " request error: ", err)
-        }
-        fmt.Println("")
-
-
-        api = "test.sdk.post"
-        reqParams = sdk.ReqParams{
-                Data: map[string]interface{}{
-                        "name": 1,
-                        "age": 10,
-                        "data": map[string]interface{}{
-                                "name": "name名称",
-                                "domain": "baidu.com",
-                        },
-                },
-        }
-        resp, err = sdkObj.Post(api, reqParams)
-        if err == nil {
-                if resp.BizCode == 1 {
-                        fmt.Println(api, " 业务处理成功")
-                } else {
-                        fmt.Println(api, " 业务处理错误: ")
-                }
-                fmt.Println(api, " http_code: ", resp.HttpCode)
-                fmt.Println(api, " body: ", resp.RespBody)
-                fmt.Println(api, " biz_code: ", resp.BizCode)
-                fmt.Println(api, " biz_msg: ", resp.BizMsg)
-                fmt.Println(api, " biz_data: ", resp.BizData)
-                fmt.Println(api, " err: ", err)
-        } else {
-                fmt.Println(api, " request error: ", err)
-        }
-        fmt.Println("")
-
-
-        api = "test.sdk.delete"
-        reqParams = sdk.ReqParams{
-                Data: map[string]interface{}{
-                        "id": 10,
-                },
-        }
-        resp, err = sdkObj.Delete(api, reqParams)
-        if err == nil {
-                if resp.BizCode == 1 {
-                        fmt.Println(api, " 业务处理成功")
-                } else {
-                        fmt.Println(api, " 业务处理错误: ")
-                }
-                fmt.Println(api, " http_code: ", resp.HttpCode)
-                fmt.Println(api, " body: ", resp.RespBody)
-                fmt.Println(api, " biz_code: ", resp.BizCode)
-                fmt.Println(api, " biz_msg: ", resp.BizMsg)
-                fmt.Println(api, " biz_data: ", resp.BizData)
-                fmt.Println(api, " err: ", err)
-        } else {
-                fmt.Println(api, " request error: ", err)
-        }
-        fmt.Println("")
-
-
-        api = "test.sdk.put"
-        reqParams = sdk.ReqParams{
-                Data: map[string]interface{}{
-                        "name": 1,
-                        "age": 10,
-                        "data": map[string]interface{}{
-                                "name": "name名称",
-                                "domain": "baidu.com",
-                        },
-                },
-        }
-        resp, err = sdkObj.Put(api, reqParams)
-        if err == nil {
-                if resp.BizCode == 1 {
-                        fmt.Println(api, " 业务处理成功")
-                } else {
-                        fmt.Println(api, " 业务处理错误: ")
-                }
-                fmt.Println(api, " http_code: ", resp.HttpCode)
-                fmt.Println(api, " body: ", resp.RespBody)
-                fmt.Println(api, " biz_code: ", resp.BizCode)
-                fmt.Println(api, " biz_msg: ", resp.BizMsg)
-                fmt.Println(api, " biz_data: ", resp.BizData)
-                fmt.Println(api, " err: ", err)
-        } else {
-                fmt.Println(api, " request error: ", err)
-        }
-        fmt.Println("")
+	sdkObj := sdk.Sdk{
+		AppId:     app_id,
+		AppSecret: app_secret,
+		ApiPre:    api_pre,
+		Timeout:   30,
+	}
+	
+	// Use sdkObj for API calls
 }
 ```
 
-#### 示例类执行输出
-···
-test.sdk.get  业务处理成功
-test.sdk.get  http_code:  200
-test.sdk.get  body:  {"status":{"code":1,"message":"操作成功"},"data":{"data":{"domain":"baidu.com","name":"name"},"page":"1","pagesize":"10"}}
-test.sdk.get  biz_code:  1
-test.sdk.get  biz_msg:  操作成功
-test.sdk.get  biz_data:  map[data:map[domain:baidu.com name:name] page:1 pagesize:10]
-test.sdk.get  err:  <nil>
+### GET Request Example
 
-test.sdk.post  业务处理成功
-test.sdk.post  http_code:  200
-test.sdk.post  body:  {"status":{"code":1,"message":"操作成功"},"data":{"age":10,"data":{"domain":"baidu.com","name":"name"},"name":1}}
-test.sdk.post  biz_code:  1
-test.sdk.post  biz_msg:  操作成功
-test.sdk.post  biz_data:  map[age:10 data:map[domain:baidu.com name:name] name:1]
-test.sdk.post  err:  <nil>
+```go
+api := "test.sdk.get"
+reqParams := sdk.ReqParams{
+	Query: map[string]interface{}{
+		"page":     1,
+		"pagesize": 10,
+		"data": map[string]interface{}{
+			"name":   "name",
+			"domain": "baidu.com",
+		},
+	},
+}
 
-test.sdk.delete  业务处理成功
-test.sdk.delete  http_code:  200
-test.sdk.delete  body:  {"status":{"code":1,"message":"操作成功"},"data":{"id":10}}
-test.sdk.delete  biz_code:  1
-test.sdk.delete  biz_msg:  操作成功
-test.sdk.delete  biz_data:  map[id:10]
-test.sdk.delete  err:  <nil>
+resp, err := sdkObj.Get(api, reqParams)
+if err != nil {
+	fmt.Println("Request error:", err)
+	return
+}
 
-test.sdk.put  业务处理成功
-test.sdk.put  http_code:  200
-test.sdk.put  body:  {"status":{"code":1,"message":"操作成功"},"data":{"age":10,"data":{"domain":"baidu.com","name":"name"},"name":1}}
-test.sdk.put  biz_code:  1
-test.sdk.put  biz_msg:  操作成功
-test.sdk.put  biz_data:  map[age:10 data:map[domain:baidu.com name:name] name:1]
-test.sdk.put  err:  <nil>
-···
+if resp.BizCode == 1 {
+	fmt.Println("Request successful")
+	fmt.Println("HTTP Code:", resp.HttpCode)
+	fmt.Println("Body:", resp.RespBody)
+	fmt.Println("Biz Code:", resp.BizCode)
+	fmt.Println("Biz Msg:", resp.BizMsg)
+	fmt.Println("Biz Data:", resp.BizData)
+} else {
+	fmt.Println("Business error:", resp.BizMsg)
+}
+```
 
-### 更新日志
+### POST Request Example
 
-* 2022.11.08 
+```go
+api := "test.sdk.post"
+reqParams := sdk.ReqParams{
+	Data: map[string]interface{}{
+		"name": 1,
+		"age":  10,
+		"data": map[string]interface{}{
+			"name":   "name",
+			"domain": "baidu.com",
+		},
+	},
+}
 
-第一版SDK
+resp, err := sdkObj.Post(api, reqParams)
+if err != nil {
+	fmt.Println("Request error:", err)
+	return
+}
 
-* 2022.11.11
+if resp.BizCode == 1 {
+	fmt.Println("Request successful")
+	fmt.Println("Biz Data:", resp.BizData)
+} else {
+	fmt.Println("Business error:", resp.BizMsg)
+}
+```
 
-1. 单元测试增加特殊字符
-2. GET请求修正参数乱序导致的签名失败问题
+### PUT Request Example
 
-* 2024.06.27
+```go
+api := "test.sdk.put"
+reqParams := sdk.ReqParams{
+	Data: map[string]interface{}{
+		"name": 1,
+		"age":  10,
+		"data": map[string]interface{}{
+			"name":   "name",
+			"domain": "baidu.com",
+		},
+	},
+}
 
-1. 调整目录结构，以适配标准化的gomod使用方式，未来发布将使用版本号
+resp, err := sdkObj.Put(api, reqParams)
+if err != nil {
+	fmt.Println("Request error:", err)
+	return
+}
+
+if resp.BizCode == 1 {
+	fmt.Println("Request successful")
+	fmt.Println("Biz Data:", resp.BizData)
+} else {
+	fmt.Println("Business error:", resp.BizMsg)
+}
+```
+
+### DELETE Request Example
+
+```go
+api := "test.sdk.delete"
+reqParams := sdk.ReqParams{
+	Data: map[string]interface{}{
+		"id": 10,
+	},
+}
+
+resp, err := sdkObj.Delete(api, reqParams)
+if err != nil {
+	fmt.Println("Request error:", err)
+	return
+}
+
+if resp.BizCode == 1 {
+	fmt.Println("Request successful")
+	fmt.Println("Biz Data:", resp.BizData)
+} else {
+	fmt.Println("Business error:", resp.BizMsg)
+}
+```
+
+### Request Parameters
+
+The `ReqParams` struct has three optional properties:
+
+- **Query**: GET request parameters (`map[string]interface{}`)
+- **Data**: Non-GET request body parameters (`map[string]interface{}`)
+- **Headers**: Custom request headers (`map[string]string`)
+
+### Response Structure
+
+The `Response` struct contains:
+
+- **HttpCode**: HTTP status code (200 for success)
+- **RespBody**: Raw response body string
+- **BizCode**: Business status code (1 = success, non-1 = failure)
+- **BizMsg**: Business status message
+- **BizData**: Business data (only available when BizCode is 1)
+
+### Important Notes
+
+1. For all requests, URI and GET parameters are separated. For example, for `https://apiv4.local.com/V4/version?v=1`, the `v=1` parameter must be passed through `ReqParams.Query`.
+
+2. If an exception occurs during execution, it will be thrown directly.
+
+3. You can enable debug mode by setting the `Debug` field to `true`.
+
+## License
+
+See LICENSE file for details.
